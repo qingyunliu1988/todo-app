@@ -10,8 +10,10 @@
   <div class="container">
     <div class="clock" id="clock"></div>
     <h1 class="title">✦ 我的待办清单</h1>
+
     <div class="input-row">
       <input type="text" id="taskInput" placeholder="添加新任务..." />
+      <input type="date" id="dateInput" />
       <select id="prioritySelect">
         <option value="high">🔴 紧急</option>
         <option value="medium" selected>🟡 普通</option>
@@ -19,15 +21,32 @@
       </select>
       <button id="addBtn">添加</button>
     </div>
-    <div class="filters">
-      <button class="filter-btn active" data-filter="all">全部</button>
-      <button class="filter-btn" data-filter="high">🔴 紧急</button>
-      <button class="filter-btn" data-filter="medium">🟡 普通</button>
-      <button class="filter-btn" data-filter="low">🟢 轻松</button>
-      <button class="filter-btn" data-filter="done">✔ 已完成</button>
+
+    <div class="main-layout">
+      <div class="calendar-panel">
+        <div class="cal-header">
+          <button id="prevMonth">‹</button>
+          <span id="calTitle"></span>
+          <button id="nextMonth">›</button>
+        </div>
+        <div class="cal-weekdays">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="list-panel">
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all">全部</button>
+          <button class="filter-btn" data-filter="high">🔴 紧急</button>
+          <button class="filter-btn" data-filter="medium">🟡 普通</button>
+          <button class="filter-btn" data-filter="low">🟢 轻松</button>
+          <button class="filter-btn" data-filter="done">✔ 已完成</button>
+        </div>
+        <ul id="taskList"></ul>
+        <p class="empty-msg" id="emptyMsg">暂无任务，添加一个吧！</p>
+      </div>
     </div>
-    <ul id="taskList"></ul>
-    <p class="empty-msg" id="emptyMsg">暂无任务，添加一个吧！</p>
   </div>
   <script src="script.js"></script>
 </body>
