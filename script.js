@@ -1,72 +1,73 @@
-const input = document.getElementById('task-input');
-const addBtn = document.getElementById('add-btn');
-const taskList = document.getElementById('task-list');
-const emptyHint = document.getElementById('empty-hint');
+const taskInput      = document.getElementById('taskInput');
+const prioritySelect = document.getElementById('prioritySelect');
+const addBtn         = document.getElementById('addBtn');
+const taskList       = document.getElementById('taskList');
+const emptyMsg       = document.getElementById('emptyMsg');
+const filterBtns     = document.querySelectorAll('.filter-btn');
 
-function updateEmptyHint() {
-  emptyHint.style.display = taskList.children.length === 0 ? 'block' : 'none';
-}
+let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+let currentFilter = 'all';
 
-function saveTasks() {
-  const tasks = Array.from(taskList.querySelectorAll('.task-item')).map(li => ({
-    text: li.querySelector('.task-text').textContent,
-    done: li.classList.contains('done'),
-  }));
+function save() {
   localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
-function createTaskElement(text, done = false) {
-  const li = document.createElement('li');
-  li.className = 'task-item' + (done ? ' done' : '');
-
-  const span = document.createElement('span');
-  span.className = 'task-text';
-  span.textContent = text;
-  span.addEventListener('click', () => {
-    li.classList.toggle('done');
-    saveTasks();
+function render() {
+  taskList.innerHTML = '';
+  const filtered = tasks.filter(t => {
+    if (currentFilter === 'all')  return true;
+    if (currentFilter === 'done') return t.done;
+    return t.priority === currentFilter && !t.done;
   });
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'delete-btn';
-  deleteBtn.textContent = '✕';
-  deleteBtn.title = 'Delete task';
-  deleteBtn.addEventListener('click', () => {
-    li.remove();
-    saveTasks();
-    updateEmptyHint();
+  filtered.forEach(task => {
+    const li = document.createElement('li');
+    li.className = 'task-item' + (task.done ? ' done' : '');
+    li.dataset.priority = task.priority;
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = task.done;
+    cb.addEventListener('change', () => { task.done = cb.checked; save(); render(); });
+
+    const span = document.createElement('span');
+    span.className = 'task-text';
+    span.textContent = task.text;
+
+    const badge = document.createElement('span');
+    badge.className = `badge badge-${task.priority}`;
+    const labels = { high: '🔴 High', medium: '🟡 Medium', low: '🟢 Low' };
+    badge.textContent = labels[task.priority];
+
+    const del = document.createElement('button');
+    del.className = 'delete-btn';
+    del.textContent = '✕';
+    del.addEventListener('click', () => { tasks = tasks.filter(t => t !== task); save(); render(); });
+
+    li.append(cb, span, badge, del);
+    taskList.appendChild(li);
   });
 
-  li.appendChild(span);
-  li.appendChild(deleteBtn);
-  return li;
+  emptyMsg.classList.toggle('show', filtered.length === 0);
 }
 
 function addTask() {
-  const text = input.value.trim();
+  const text = taskInput.value.trim();
   if (!text) return;
-
-  taskList.appendChild(createTaskElement(text));
-  saveTasks();
-
-  input.value = '';
-  input.focus();
-  updateEmptyHint();
-}
-
-function loadTasks() {
-  const saved = localStorage.getItem('tasks');
-  if (!saved) return;
-  JSON.parse(saved).forEach(({ text, done }) => {
-    taskList.appendChild(createTaskElement(text, done));
-  });
+  tasks.unshift({ text, priority: prioritySelect.value, done: false, id: Date.now() });
+  taskInput.value = '';
+  save(); render();
 }
 
 addBtn.addEventListener('click', addTask);
-
-input.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') addTask();
+taskInput.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
 });
 
-loadTasks();
-updateEmptyHint();
+render();
